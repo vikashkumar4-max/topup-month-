@@ -237,7 +237,7 @@
     .popup-icon {
       font-size: 50px;
       margin-bottom: 10px;
-      animation: pulse 1s infinite alternate;
+      animation: pulse 0.8s infinite alternate;
     }
 
     .popup-title {
@@ -273,7 +273,7 @@
 
     @keyframes pulse {
       0% { transform: scale(1); }
-      100% { transform: scale(1.15); }
+      100% { transform: scale(1.18); }
     }
   </style>
 </head>
@@ -325,7 +325,7 @@
 <!-- UNIQUE POPUP MODAL -->
 <div class="popup-overlay" id="warningPopup">
   <div class="popup-card">
-    <div class="popup-icon">🚨😱💸</div>
+    <div class="popup-icon">🚨😱🔊</div>
     <div class="popup-title">Arre Bhai Bhai Bhai!</div>
     <div class="popup-msg">
       Sahi date dalo verna <strong>Ashish Sir</strong> salary kaat lenge! ✂️💵<br><br>
@@ -345,8 +345,36 @@
   document.getElementById('tillThen').innerText = formatDate(targetDate);
   document.getElementById('rGiven').innerText = formatDate(targetDate);
 
+  // Audio Alarm Generator (Web Audio API)
+  function playWarningSound() {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sawtooth';
+      
+      // Siren Effect Frequency Shift
+      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.4);
+
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    } catch(e) {
+      console.log('Audio playback prevented');
+    }
+  }
+
   // Popup triggers
   function showPopup() {
+    playWarningSound();
     document.getElementById('warningPopup').classList.add('active');
   }
 
