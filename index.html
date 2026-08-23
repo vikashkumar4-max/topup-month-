@@ -8,7 +8,7 @@
     :root {
       --bg: #e0e5ec;
       --card-bg: #e0e5ec;
-      --shadow-out: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.6);
+      --shadow-out: 9px 9px 16px rgba(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.6);
       --shadow-in: inset 6px 6px 10px rgba(163,177,198,0.7), inset -6px -6px 10px rgba(255,255,255, 0.8);
       --accent-blue: #2563eb;
       --accent-orange: #f97316;
@@ -19,7 +19,7 @@
     * {
       box-sizing: border-box;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      user-select: text; /* Dynamic copy allowed */
+      user-select: text; /* Text copying allowed */
     }
 
     body {
@@ -114,7 +114,6 @@
       text-align: center;
       box-shadow: var(--shadow-out);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
     }
 
     .card:hover {
@@ -159,7 +158,7 @@
 
     .results-panel {
       background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(10, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.2);
       border-radius: 16px;
       padding: 20px;
       font-size: 14px;
@@ -254,7 +253,18 @@
 </div>
 
 <script>
-  // Dynamic Flexible Date Parsing
+  // Date Formatter (e.g. 23-Aug-2028)
+  const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+
+  // Today + 2 Years (Fixed Target Date)
+  const targetDate = new Date();
+  targetDate.setFullYear(targetDate.getFullYear() + 2);
+
+  // Show "Till Then" date immediately
+  document.getElementById('tillThen').innerText = formatDate(targetDate);
+  document.getElementById('rGiven').innerText = formatDate(targetDate);
+
+  // Flexible Date Parser
   function parseAnyDate(str) {
     if (!str) return null;
     str = str.trim();
@@ -265,7 +275,6 @@
       return new Date(dmy[3], dmy[2] - 1, dmy[1]);
     }
     
-    // JS standard parser fallback (handles 2027-08-10, 10 Aug 2027, etc.)
     let parsed = new Date(str);
     return isNaN(parsed) ? null : parsed;
   }
@@ -276,25 +285,25 @@
     const expireDate = parseAnyDate(this.value);
 
     if (!expireDate) {
-      document.getElementById('tillThen').innerText = '--';
       document.getElementById('totalDays').innerText = '--';
       document.getElementById('exactTopup').innerText = '--';
       document.getElementById('fullTopup').innerText = '--';
       document.getElementById('rSelected').innerText = '--';
-      document.getElementById('rGiven').innerText = '--';
       document.getElementById('rExact').innerText = '--';
       document.getElementById('rRounded').innerText = '--';
       return;
     }
 
-    // Target Date logic: 2 Years from given date
-    const targetDate = new Date(expireDate);
-    targetDate.setFullYear(targetDate.getFullYear() + 2);
-
-    const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
-
+    // Calculate difference between Selected Date and (Today + 2 Years)
     const diffTime = targetDate - expireDate;
     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (totalDays < 0) {
+      document.getElementById('totalDays').innerText = 'Expired';
+      document.getElementById('exactTopup').innerText = '0M 0D';
+      document.getElementById('fullTopup').innerText = '0 Months';
+      return;
+    }
 
     let months = (targetDate.getFullYear() - expireDate.getFullYear()) * 12 + (targetDate.getMonth() - expireDate.getMonth());
     let days = targetDate.getDate() - expireDate.getDate();
@@ -308,25 +317,23 @@
     const roundedMonths = days > 0 ? months + 1 : months;
 
     // Render Data
-    document.getElementById('tillThen').innerText = formatDate(targetDate);
     document.getElementById('totalDays').innerText = `${totalDays} Days`;
     document.getElementById('exactTopup').innerText = `${months}M ${days}D`;
     document.getElementById('fullTopup').innerText = `${roundedMonths} Months`;
 
     document.getElementById('rSelected').innerText = formatDate(expireDate);
-    document.getElementById('rGiven').innerText = formatDate(targetDate);
     document.getElementById('rExact').innerText = `${months} Months & ${days} Days (Total: ${totalDays} Days)`;
     document.getElementById('rRounded').innerText = `${roundedMonths} Full Months (Extra ${days} days added as +1 month)`;
   });
 
-  // Source Code View Protection
+  // Protect Inspect Element / View Source
   document.addEventListener('keydown', function(e) {
     if (
-      e.keyCode === 123 || // F12
-      (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
-      (e.ctrlKey && e.shiftKey && e.keyCode === 74) || // Ctrl+Shift+J
-      (e.ctrlKey && e.keyCode === 85) || // Ctrl+U
-      (e.ctrlKey && e.keyCode === 83) // Ctrl+S
+      e.keyCode === 123 || 
+      (e.ctrlKey && e.shiftKey && e.keyCode === 73) || 
+      (e.ctrlKey && e.shiftKey && e.keyCode === 74) || 
+      (e.ctrlKey && e.keyCode === 85) || 
+      (e.ctrlKey && e.keyCode === 83)
     ) {
       e.preventDefault();
       return false;
