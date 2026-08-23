@@ -71,7 +71,7 @@
 
     .input-wrapper {
       position: relative;
-      margin-bottom: 30px;
+      margin-bottom: 15px;
     }
 
     .input-wrapper label {
@@ -102,11 +102,31 @@
       box-shadow: inset 3px 3px 6px rgba(163,177,198,0.7), inset -3px -3px 6px rgba(255,255,255, 0.8), 0 0 5px rgba(37,99,235,0.3);
     }
 
+    /* EMPTY INPUT WARNING TEXT */
+    .empty-warning {
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: rgba(220, 38, 38, 0.08);
+      border-radius: 10px;
+      border: 1px dashed #ef4444;
+      display: block;
+    }
+
+    /* HIDDEN DASHBOARD BY DEFAULT */
+    .dashboard-content {
+      display: none;
+      transition: all 0.3s ease;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 15px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
 
     .card {
@@ -147,7 +167,26 @@
     .c-purple .card-title { color: var(--accent-purple); }
     .c-purple .card-val { color: #581c87; }
 
+    .btn-toggle-details {
+      width: 100%;
+      background: var(--card-bg);
+      color: #334155;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-out);
+      margin-bottom: 15px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-toggle-details:active {
+      box-shadow: var(--shadow-in);
+    }
+
     .results-panel {
+      display: none;
       background: rgba(16, 185, 129, 0.08);
       border: 1px solid rgba(16, 185, 129, 0.2);
       border-radius: 16px;
@@ -155,6 +194,7 @@
       font-size: 14px;
       color: #064e3b;
       box-shadow: inset 2px 2px 5px rgba(0,0,0,0.03);
+      margin-bottom: 20px;
     }
 
     .results-panel h3 {
@@ -176,7 +216,7 @@
     }
 
     .btn-action {
-      margin-top: 25px;
+      margin-top: 10px;
       width: 100%;
       background: var(--accent-dark);
       color: white;
@@ -290,36 +330,47 @@
     <input type="text" id="dateInput" placeholder="Type date & press Enter (e.g. 10/08/2027)">
   </div>
 
-  <div class="grid">
-    <div class="card c-blue">
-      <div class="card-title">Till Then</div>
-      <div class="card-val" id="tillThen">--</div>
-    </div>
-    <div class="card c-orange">
-      <div class="card-title">Total Days</div>
-      <div class="card-val" id="totalDays">--</div>
-    </div>
-    <div class="card c-green">
-      <div class="card-title">Exact Topup</div>
-      <div class="card-val" id="exactTopup">--</div>
-    </div>
-    <div class="card c-purple">
-      <div class="card-title">Full Topup</div>
-      <div class="card-val" id="fullTopup">--</div>
-    </div>
+  <!-- WARNING TEXT WHEN BOX IS EMPTY -->
+  <div class="empty-warning" id="emptyWarning">
+    🚨 Please paste date carefully 100% SALARY CUT CHANCE AVAILABLE
   </div>
 
-  <div class="results-panel">
-    <h3>👊 Result Details:</h3>
-    <ul>
-      <li><strong>Selected Date:</strong> <span id="rSelected">--</span></li>
-      <li><strong>Given date (2 Years):</strong> <span id="rGiven">--</span></li>
-      <li><strong>Exact Time Remaining:</strong> <span id="rExact">--</span></li>
-      <li><strong>Required Topup (Rounded):</strong> <span id="rRounded">--</span></li>
-    </ul>
-  </div>
+  <!-- HIDDEN DASHBOARD UNTIL ENTER IS PRESSED -->
+  <div class="dashboard-content" id="dashboardContent">
+    <div class="grid">
+      <div class="card c-blue">
+        <div class="card-title">Till Then</div>
+        <div class="card-val" id="tillThen">--</div>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">Total Days</div>
+        <div class="card-val" id="totalDays">--</div>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">Exact Topup</div>
+        <div class="card-val" id="exactTopup">--</div>
+      </div>
+      <div class="card c-purple">
+        <div class="card-title">Full Topup</div>
+        <div class="card-val" id="fullTopup">--</div>
+      </div>
+    </div>
 
-  <button class="btn-action" onclick="alert('Operation Completed!')">💸 Shower Money</button>
+    <!-- BUTTON TO TOGGLE DETAILS PANEL -->
+    <button class="btn-toggle-details" onclick="toggleDetails()">👁️ View Detailed Result</button>
+
+    <div class="results-panel" id="resultsPanel">
+      <h3>👊 Result Details:</h3>
+      <ul>
+        <li><strong>Selected Date:</strong> <span id="rSelected">--</span></li>
+        <li><strong>Given date (2 Years):</strong> <span id="rGiven">--</span></li>
+        <li><strong>Exact Time Remaining:</strong> <span id="rExact">--</span></li>
+        <li><strong>Required Topup (Rounded):</strong> <span id="rRounded">--</span></li>
+      </ul>
+    </div>
+
+    <button class="btn-action" onclick="alert('Operation Completed!')">💸 Shower Money</button>
+  </div>
 </div>
 
 <!-- UNIQUE POPUP MODAL -->
@@ -345,7 +396,7 @@
   document.getElementById('tillThen').innerText = formatDate(targetDate);
   document.getElementById('rGiven').innerText = formatDate(targetDate);
 
-  // Meme Sound Generator (Vine Boom / Drop effect using Web Audio API)
+  // Meme Sound Generator (Vine Boom effect using Web Audio API)
   function playMemeSound() {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -354,7 +405,6 @@
 
       osc.type = 'triangle';
       
-      // Pitch drop effect
       osc.frequency.setValueAtTime(150, audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.4);
 
@@ -371,7 +421,6 @@
     }
   }
 
-  // Popup triggers
   function showPopup() {
     playMemeSound();
     document.getElementById('warningPopup').classList.add('active');
@@ -380,6 +429,16 @@
   function closePopup() {
     document.getElementById('warningPopup').classList.remove('active');
     document.getElementById('dateInput').focus();
+  }
+
+  // Toggle Details Panel
+  function toggleDetails() {
+    const panel = document.getElementById('resultsPanel');
+    if (panel.style.display === 'block') {
+      panel.style.display = 'none';
+    } else {
+      panel.style.display = 'block';
+    }
   }
 
   // Parse custom date formats
@@ -401,6 +460,15 @@
   }
 
   const dateInput = document.getElementById('dateInput');
+  const emptyWarning = document.getElementById('emptyWarning');
+  const dashboardContent = document.getElementById('dashboardContent');
+
+  // Monitor input to show/hide warning if emptied
+  dateInput.addEventListener('input', function() {
+    if (!this.value.trim()) {
+      resetDashboard();
+    }
+  });
 
   // TRIGGER ON ENTER KEY PRESS ONLY
   dateInput.addEventListener('keydown', function(e) {
@@ -409,7 +477,7 @@
       const val = this.value.trim();
 
       if (!val) {
-        resetFields();
+        resetDashboard();
         return;
       }
 
@@ -417,11 +485,15 @@
 
       if (expireDate === 'INVALID') {
         showPopup();
-        resetFields();
+        resetDashboard();
         return;
       }
 
-      // Execute calculation on Enter
+      // Valid input: Hide red warning, Show dashboard
+      emptyWarning.style.display = 'none';
+      dashboardContent.style.display = 'block';
+
+      // Calculation logic
       const start = new Date(expireDate.getFullYear(), expireDate.getMonth(), expireDate.getDate());
       const end = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
       
@@ -456,13 +528,10 @@
     }
   });
 
-  function resetFields() {
-    document.getElementById('totalDays').innerText = '--';
-    document.getElementById('exactTopup').innerText = '--';
-    document.getElementById('fullTopup').innerText = '--';
-    document.getElementById('rSelected').innerText = '--';
-    document.getElementById('rExact').innerText = '--';
-    document.getElementById('rRounded').innerText = '--';
+  function resetDashboard() {
+    emptyWarning.style.display = 'block';
+    dashboardContent.style.display = 'none';
+    document.getElementById('resultsPanel').style.display = 'none';
   }
 
   // Prevent inspect element
