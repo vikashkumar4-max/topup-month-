@@ -5,68 +5,242 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Topup Calendar</title>
   <style>
-    * { box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { background-color: #f8fafc; display: flex; justify-content: center; padding: 20px; color: #1e293b; }
-    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; width: 100%; }
-    .header { text-align: center; margin-bottom: 25px; }
-    .header h1 { font-size: 24px; margin: 0; color: #0f172a; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .header p { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 5px; font-weight: bold; }
-    
-    .input-group { margin-bottom: 25px; }
-    .input-group label { font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px; }
-    .input-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f1f5f9; font-size: 16px; outline: none; }
-    
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
-    .box { border-radius: 8px; padding: 12px 8px; text-align: center; border: 1.5px solid transparent; }
-    .box-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
-    .box-val { font-size: 15px; font-weight: bold; }
-    
-    .b-blue { border-color: #2563eb; background: #fff; } .b-blue .box-title { color: #2563eb; } .b-blue .box-val { color: #1e3a8a; }
-    .b-orange { border-color: #f97316; background: #fff; } .b-orange .box-title { color: #f97316; } .b-orange .box-val { color: #7c2d12; }
-    .b-green { border-color: #10b981; background: #fff; } .b-green .box-title { color: #10b981; } .b-green .box-val { color: #064e3b; }
-    .b-dark { background: #0f172a; color: white; } .b-dark .box-title { color: #94a3b8; } .b-dark .box-val { color: #ffffff; background: #1e40af; padding: 2px 6px; border-radius: 4px; }
+    :root {
+      --bg: #e0e5ec;
+      --card-bg: #e0e5ec;
+      --shadow-out: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.6);
+      --shadow-in: inset 6px 6px 10px rgba(163,177,198,0.7), inset -6px -6px 10px rgba(255,255,255, 0.8);
+      --accent-blue: #2563eb;
+      --accent-orange: #f97316;
+      --accent-green: #10b981;
+      --accent-dark: #0f172a;
+    }
 
-    .results { background: #e6f4ea; border-radius: 8px; padding: 15px; font-size: 14px; color: #137333; }
-    .results h3 { font-size: 15px; margin: 0 0 10px 0; }
-    .results ul { margin: 0; padding-left: 20px; }
-    .results li { margin-bottom: 6px; }
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: text; /* Dynamic copy allowed */
+    }
 
-    .btn { margin-top: 20px; background: #0f172a; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    body {
+      background-color: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .dashboard-container {
+      background: var(--card-bg);
+      padding: 35px;
+      border-radius: 25px;
+      box-shadow: var(--shadow-out);
+      max-width: 650px;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      margin: 0;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .header p {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    .input-wrapper label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 16px 20px;
+      border: none;
+      border-radius: 15px;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-in);
+      font-size: 16px;
+      color: #0f172a;
+      outline: none;
+      transition: all 0.2s ease;
+      font-weight: 600;
+    }
+
+    .input-wrapper input:focus {
+      box-shadow: inset 3px 3px 6px rgba(163,177,198,0.7), inset -3px -3px 6px rgba(255,255,255, 0.8), 0 0 5px rgba(37,99,235,0.3);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 16px 10px;
+      text-align: center;
+      box-shadow: var(--shadow-out);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .card-val {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .c-blue .card-title { color: var(--accent-blue); }
+    .c-blue .card-val { color: #1e40af; }
+
+    .c-orange .card-title { color: var(--accent-orange); }
+    .c-orange .card-val { color: #9a3412; }
+
+    .c-green .card-title { color: var(--accent-green); }
+    .c-green .card-val { color: #065f46; }
+
+    .c-dark {
+      background: #0f172a;
+      box-shadow: 5px 5px 12px rgba(15,23,42,0.3), -5px -5px 12px rgba(255,255,255,0.5);
+    }
+    .c-dark .card-title { color: #94a3b8; }
+    .c-dark .card-val {
+      color: #ffffff;
+      background: #2563eb;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .results-panel {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(10, 185, 129, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 14px;
+      color: #064e3b;
+      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .results-panel h3 {
+      font-size: 15px;
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .results-panel ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .results-panel li {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .btn-action {
+      margin-top: 25px;
+      width: 100%;
+      background: var(--accent-dark);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(15,23,42,0.2);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-action:active {
+      transform: scale(0.98);
+    }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-<div class="card">
+<div class="dashboard-container">
   <div class="header">
     <h1>🪙 Topup Calendar</h1>
     <p>Avoid salary cuts with smart calendar tracking</p>
   </div>
 
-  <div class="input-group">
+  <div class="input-wrapper">
     <label>📌 Plan Expire At:</label>
-    <input type="date" id="expireDate" value="2027-08-10">
+    <input type="text" id="dateInput" placeholder="Type date (e.g. 10/08/2027, 10 Aug 2027)">
   </div>
 
   <div class="grid">
-    <div class="box b-blue">
-      <div class="box-title">Till Then</div>
-      <div class="box-val" id="tillThen">--</div>
+    <div class="card c-blue">
+      <div class="card-title">Till Then</div>
+      <div class="card-val" id="tillThen">--</div>
     </div>
-    <div class="box b-orange">
-      <div class="box-title">Total Days</div>
-      <div class="box-val" id="totalDays">--</div>
+    <div class="card c-orange">
+      <div class="card-title">Total Days</div>
+      <div class="card-val" id="totalDays">--</div>
     </div>
-    <div class="box b-green">
-      <div class="box-title">Exact Topup</div>
-      <div class="box-val" id="exactTopup">--</div>
+    <div class="card c-green">
+      <div class="card-title">Exact Topup</div>
+      <div class="card-val" id="exactTopup">--</div>
     </div>
-    <div class="box b-dark">
-      <div class="box-title">Full Topup</div>
-      <div class="box-val" id="fullTopup">--</div>
+    <div class="card c-dark">
+      <div class="card-title">Full Topup</div>
+      <div class="card-val" id="fullTopup">--</div>
     </div>
   </div>
 
-  <div class="results">
+  <div class="results-panel">
     <h3>👊 Result Details:</h3>
     <ul>
       <li><strong>Selected Date:</strong> <span id="rSelected">--</span></li>
@@ -76,27 +250,52 @@
     </ul>
   </div>
 
-  <button class="btn" onclick="alert('Money Showered! 💸')">💸 Shower Money</button>
+  <button class="btn-action" onclick="alert('Operation Completed!')">💸 Shower Money</button>
 </div>
 
 <script>
-  const expireInput = document.getElementById('expireDate');
+  // Dynamic Flexible Date Parsing
+  function parseAnyDate(str) {
+    if (!str) return null;
+    str = str.trim();
+    
+    // Check for DD/MM/YYYY or DD-MM-YYYY
+    let dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dmy) {
+      return new Date(dmy[3], dmy[2] - 1, dmy[1]);
+    }
+    
+    // JS standard parser fallback (handles 2027-08-10, 10 Aug 2027, etc.)
+    let parsed = new Date(str);
+    return isNaN(parsed) ? null : parsed;
+  }
 
-  function calculate() {
-    const expireDate = new Date(expireInput.value);
-    if (isNaN(expireDate)) return;
+  const dateInput = document.getElementById('dateInput');
 
-    // Fixed Target Date: 23-Aug-2028 (matching image logic)
-    const targetDate = new Date('2028-08-23');
+  dateInput.addEventListener('input', function() {
+    const expireDate = parseAnyDate(this.value);
 
-    // Date formatting helper
-    const formatDate = (date) => date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+    if (!expireDate) {
+      document.getElementById('tillThen').innerText = '--';
+      document.getElementById('totalDays').innerText = '--';
+      document.getElementById('exactTopup').innerText = '--';
+      document.getElementById('fullTopup').innerText = '--';
+      document.getElementById('rSelected').innerText = '--';
+      document.getElementById('rGiven').innerText = '--';
+      document.getElementById('rExact').innerText = '--';
+      document.getElementById('rRounded').innerText = '--';
+      return;
+    }
 
-    // Calculate difference in days
+    // Target Date logic: 2 Years from given date
+    const targetDate = new Date(expireDate);
+    targetDate.setFullYear(targetDate.getFullYear() + 2);
+
+    const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+
     const diffTime = targetDate - expireDate;
     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    // Calculate months & remaining days
     let months = (targetDate.getFullYear() - expireDate.getFullYear()) * 12 + (targetDate.getMonth() - expireDate.getMonth());
     let days = targetDate.getDate() - expireDate.getDate();
 
@@ -108,7 +307,7 @@
 
     const roundedMonths = days > 0 ? months + 1 : months;
 
-    // Render output
+    // Render Data
     document.getElementById('tillThen').innerText = formatDate(targetDate);
     document.getElementById('totalDays').innerText = `${totalDays} Days`;
     document.getElementById('exactTopup').innerText = `${months}M ${days}D`;
@@ -118,10 +317,21 @@
     document.getElementById('rGiven').innerText = formatDate(targetDate);
     document.getElementById('rExact').innerText = `${months} Months & ${days} Days (Total: ${totalDays} Days)`;
     document.getElementById('rRounded').innerText = `${roundedMonths} Full Months (Extra ${days} days added as +1 month)`;
-  }
+  });
 
-  expireInput.addEventListener('change', calculate);
-  calculate();
+  // Source Code View Protection
+  document.addEventListener('keydown', function(e) {
+    if (
+      e.keyCode === 123 || // F12
+      (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
+      (e.ctrlKey && e.shiftKey && e.keyCode === 74) || // Ctrl+Shift+J
+      (e.ctrlKey && e.keyCode === 85) || // Ctrl+U
+      (e.ctrlKey && e.keyCode === 83) // Ctrl+S
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  });
 </script>
 
 </body>
