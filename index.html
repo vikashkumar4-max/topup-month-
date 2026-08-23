@@ -13,13 +13,14 @@
       --accent-blue: #2563eb;
       --accent-orange: #f97316;
       --accent-green: #10b981;
+      --accent-purple: #7c3aed;
       --accent-dark: #0f172a;
     }
 
     * {
       box-sizing: border-box;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      user-select: text; /* Text copying allowed */
+      user-select: text;
     }
 
     body {
@@ -30,6 +31,7 @@
       align-items: center;
       margin: 0;
       padding: 20px;
+      position: relative;
     }
 
     .dashboard-container {
@@ -142,19 +144,8 @@
     .c-green .card-title { color: var(--accent-green); }
     .c-green .card-val { color: #065f46; }
 
-    .c-dark {
-      background: #0f172a;
-      box-shadow: 5px 5px 12px rgba(15,23,42,0.3), -5px -5px 12px rgba(255,255,255,0.5);
-    }
-    .c-dark .card-title { color: #94a3b8; }
-    .c-dark .card-val {
-      color: #ffffff;
-      background: #2563eb;
-      padding: 4px 8px;
-      border-radius: 6px;
-      display: inline-block;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
+    .c-purple .card-title { color: var(--accent-purple); }
+    .c-purple .card-val { color: #581c87; }
 
     .results-panel {
       background: rgba(16, 185, 129, 0.08);
@@ -205,6 +196,85 @@
     .btn-action:active {
       transform: scale(0.98);
     }
+
+    /* UNIQUE CUSTOM POPUP STYLES */
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(5px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .popup-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup-card {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      transform: scale(0.7);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid #ef4444;
+    }
+
+    .popup-overlay.active .popup-card {
+      transform: scale(1);
+    }
+
+    .popup-icon {
+      font-size: 50px;
+      margin-bottom: 10px;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .popup-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #dc2626;
+      margin-bottom: 10px;
+    }
+
+    .popup-msg {
+      font-size: 14px;
+      color: #334155;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .popup-btn {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .popup-btn:hover {
+      background: #b91c1c;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.15); }
+    }
   </style>
 </head>
 <body oncontextmenu="return false;">
@@ -233,7 +303,7 @@
       <div class="card-title">Exact Topup</div>
       <div class="card-val" id="exactTopup">--</div>
     </div>
-    <div class="card c-dark">
+    <div class="card c-purple">
       <div class="card-title">Full Topup</div>
       <div class="card-val" id="fullTopup">--</div>
     </div>
@@ -252,51 +322,92 @@
   <button class="btn-action" onclick="alert('Operation Completed!')">💸 Shower Money</button>
 </div>
 
+<!-- UNIQUE POPUP MODAL -->
+<div class="popup-overlay" id="warningPopup">
+  <div class="popup-card">
+    <div class="popup-icon">🚨😱💸</div>
+    <div class="popup-title">Arre Bhai Bhai Bhai!</div>
+    <div class="popup-msg">
+      Sahi date dalo verna <strong>Ashish Sir</strong> salary kaat lenge! ✂️💵<br><br>
+      <i>(Format example: 10/08/2027 ya 10 Aug 2027)</i>
+    </div>
+    <button class="popup-btn" onclick="closePopup()">Abhi Sahi Karta Hu! 🫡</button>
+  </div>
+</div>
+
 <script>
-  // Date Formatter (e.g. 23-Aug-2028)
   const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
 
-  // Today + 2 Years (Fixed Target Date)
+  // Fixed Target Date (Today + 2 Years)
   const targetDate = new Date();
   targetDate.setFullYear(targetDate.getFullYear() + 2);
 
-  // Show "Till Then" date immediately
   document.getElementById('tillThen').innerText = formatDate(targetDate);
   document.getElementById('rGiven').innerText = formatDate(targetDate);
 
-  // Flexible Date Parser
+  // Popup triggers
+  function showPopup() {
+    document.getElementById('warningPopup').classList.add('active');
+  }
+
+  function closePopup() {
+    document.getElementById('warningPopup').classList.remove('active');
+    document.getElementById('dateInput').focus();
+  }
+
+  // Parse custom date formats
   function parseAnyDate(str) {
     if (!str) return null;
     str = str.trim();
     
-    // Check for DD/MM/YYYY or DD-MM-YYYY
     let dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (dmy) {
-      return new Date(dmy[3], dmy[2] - 1, dmy[1]);
+      let d = parseInt(dmy[1], 10);
+      let m = parseInt(dmy[2], 10) - 1;
+      let y = parseInt(dmy[3], 10);
+      let dateObj = new Date(y, m, d);
+      return (dateObj.getDate() === d && dateObj.getMonth() === m) ? dateObj : 'INVALID';
     }
     
     let parsed = new Date(str);
-    return isNaN(parsed) ? null : parsed;
+    return isNaN(parsed.getTime()) ? 'INVALID' : parsed;
   }
 
   const dateInput = document.getElementById('dateInput');
 
-  dateInput.addEventListener('input', function() {
-    const expireDate = parseAnyDate(this.value);
+  dateInput.addEventListener('change', function() {
+    const val = this.value.trim();
+    if (!val) return;
 
-    if (!expireDate) {
-      document.getElementById('totalDays').innerText = '--';
-      document.getElementById('exactTopup').innerText = '--';
-      document.getElementById('fullTopup').innerText = '--';
-      document.getElementById('rSelected').innerText = '--';
-      document.getElementById('rExact').innerText = '--';
-      document.getElementById('rRounded').innerText = '--';
+    const expireDate = parseAnyDate(val);
+
+    if (expireDate === 'INVALID') {
+      showPopup();
+      resetFields();
+    }
+  });
+
+  dateInput.addEventListener('input', function() {
+    const val = this.value.trim();
+
+    if (!val) {
+      resetFields();
       return;
     }
 
-    // Calculate difference between Selected Date and (Today + 2 Years)
-    const diffTime = targetDate - expireDate;
-    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const expireDate = parseAnyDate(val);
+
+    if (expireDate === 'INVALID') {
+      resetFields();
+      return;
+    }
+
+    // Calculation logic
+    const start = new Date(expireDate.getFullYear(), expireDate.getMonth(), expireDate.getDate());
+    const end = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+    const diffTime = end - start;
+    const totalDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     if (totalDays < 0) {
       document.getElementById('totalDays').innerText = 'Expired';
@@ -316,7 +427,6 @@
 
     const roundedMonths = days > 0 ? months + 1 : months;
 
-    // Render Data
     document.getElementById('totalDays').innerText = `${totalDays} Days`;
     document.getElementById('exactTopup').innerText = `${months}M ${days}D`;
     document.getElementById('fullTopup').innerText = `${roundedMonths} Months`;
@@ -326,7 +436,16 @@
     document.getElementById('rRounded').innerText = `${roundedMonths} Full Months (Extra ${days} days added as +1 month)`;
   });
 
-  // Protect Inspect Element / View Source
+  function resetFields() {
+    document.getElementById('totalDays').innerText = '--';
+    document.getElementById('exactTopup').innerText = '--';
+    document.getElementById('fullTopup').innerText = '--';
+    document.getElementById('rSelected').innerText = '--';
+    document.getElementById('rExact').innerText = '--';
+    document.getElementById('rRounded').innerText = '--';
+  }
+
+  // Prevent inspect element
   document.addEventListener('keydown', function(e) {
     if (
       e.keyCode === 123 || 
