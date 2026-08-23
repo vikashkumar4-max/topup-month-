@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topup Calendar</title>
+  <style>
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background-color: #f8fafc; display: flex; justify-content: center; padding: 20px; color: #1e293b; }
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; width: 100%; }
+    .header { text-align: center; margin-bottom: 25px; }
+    .header h1 { font-size: 24px; margin: 0; color: #0f172a; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .header p { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 5px; font-weight: bold; }
+    
+    .input-group { margin-bottom: 25px; }
+    .input-group label { font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px; }
+    .input-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f1f5f9; font-size: 16px; outline: none; }
+    
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+    .box { border-radius: 8px; padding: 12px 8px; text-align: center; border: 1.5px solid transparent; }
+    .box-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
+    .box-val { font-size: 15px; font-weight: bold; }
+    
+    .b-blue { border-color: #2563eb; background: #fff; } .b-blue .box-title { color: #2563eb; } .b-blue .box-val { color: #1e3a8a; }
+    .b-orange { border-color: #f97316; background: #fff; } .b-orange .box-title { color: #f97316; } .b-orange .box-val { color: #7c2d12; }
+    .b-green { border-color: #10b981; background: #fff; } .b-green .box-title { color: #10b981; } .b-green .box-val { color: #064e3b; }
+    .b-dark { background: #0f172a; color: white; } .b-dark .box-title { color: #94a3b8; } .b-dark .box-val { color: #ffffff; background: #1e40af; padding: 2px 6px; border-radius: 4px; }
+
+    .results { background: #e6f4ea; border-radius: 8px; padding: 15px; font-size: 14px; color: #137333; }
+    .results h3 { font-size: 15px; margin: 0 0 10px 0; }
+    .results ul { margin: 0; padding-left: 20px; }
+    .results li { margin-bottom: 6px; }
+
+    .btn { margin-top: 20px; background: #0f172a; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1>🪙 Topup Calendar</h1>
+    <p>Avoid salary cuts with smart calendar tracking</p>
+  </div>
+
+  <div class="input-group">
+    <label>📌 Plan Expire At:</label>
+    <input type="date" id="expireDate" value="2027-08-10">
+  </div>
+
+  <div class="grid">
+    <div class="box b-blue">
+      <div class="box-title">Till Then</div>
+      <div class="box-val" id="tillThen">--</div>
+    </div>
+    <div class="box b-orange">
+      <div class="box-title">Total Days</div>
+      <div class="box-val" id="totalDays">--</div>
+    </div>
+    <div class="box b-green">
+      <div class="box-title">Exact Topup</div>
+      <div class="box-val" id="exactTopup">--</div>
+    </div>
+    <div class="box b-dark">
+      <div class="box-title">Full Topup</div>
+      <div class="box-val" id="fullTopup">--</div>
+    </div>
+  </div>
+
+  <div class="results">
+    <h3>👊 Result Details:</h3>
+    <ul>
+      <li><strong>Selected Date:</strong> <span id="rSelected">--</span></li>
+      <li><strong>Given date (2 Years):</strong> <span id="rGiven">--</span></li>
+      <li><strong>Exact Time Remaining:</strong> <span id="rExact">--</span></li>
+      <li><strong>Required Topup (Rounded):</strong> <span id="rRounded">--</span></li>
+    </ul>
+  </div>
+
+  <button class="btn" onclick="alert('Money Showered! 💸')">💸 Shower Money</button>
+</div>
+
+<script>
+  const expireInput = document.getElementById('expireDate');
+
+  function calculate() {
+    const expireDate = new Date(expireInput.value);
+    if (isNaN(expireDate)) return;
+
+    // Fixed Target Date: 23-Aug-2028 (matching image logic)
+    const targetDate = new Date('2028-08-23');
+
+    // Date formatting helper
+    const formatDate = (date) => date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+
+    // Calculate difference in days
+    const diffTime = targetDate - expireDate;
+    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Calculate months & remaining days
+    let months = (targetDate.getFullYear() - expireDate.getFullYear()) * 12 + (targetDate.getMonth() - expireDate.getMonth());
+    let days = targetDate.getDate() - expireDate.getDate();
+
+    if (days < 0) {
+      months--;
+      const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
+      days += prevMonth.getDate();
+    }
+
+    const roundedMonths = days > 0 ? months + 1 : months;
+
+    // Render output
+    document.getElementById('tillThen').innerText = formatDate(targetDate);
+    document.getElementById('totalDays').innerText = `${totalDays} Days`;
+    document.getElementById('exactTopup').innerText = `${months}M ${days}D`;
+    document.getElementById('fullTopup').innerText = `${roundedMonths} Months`;
+
+    document.getElementById('rSelected').innerText = formatDate(expireDate);
+    document.getElementById('rGiven').innerText = formatDate(targetDate);
+    document.getElementById('rExact').innerText = `${months} Months & ${days} Days (Total: ${totalDays} Days)`;
+    document.getElementById('rRounded').innerText = `${roundedMonths} Full Months (Extra ${days} days added as +1 month)`;
+  }
+
+  expireInput.addEventListener('change', calculate);
+  calculate();
+</script>
+
+</body>
+</html>
