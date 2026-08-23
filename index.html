@@ -287,7 +287,7 @@
 
   <div class="input-wrapper">
     <label>📌 Plan Expire At:</label>
-    <input type="text" id="dateInput" placeholder="Type date (e.g. 10/08/2027, 10 Aug 2027)">
+    <input type="text" id="dateInput" placeholder="Type date & press Enter (e.g. 10/08/2027)">
   </div>
 
   <div class="grid">
@@ -345,36 +345,35 @@
   document.getElementById('tillThen').innerText = formatDate(targetDate);
   document.getElementById('rGiven').innerText = formatDate(targetDate);
 
-  // Audio Alarm Generator (Web Audio API)
-  function playWarningSound() {
+  // Meme Sound Generator (Vine Boom / Drop effect using Web Audio API)
+  function playMemeSound() {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
-      osc.type = 'sawtooth';
+      osc.type = 'triangle';
       
-      // Siren Effect Frequency Shift
-      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
-      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.4);
+      // Pitch drop effect
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.4);
 
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      gain.gain.setValueAtTime(1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
+      osc.stop(audioCtx.currentTime + 0.4);
     } catch(e) {
-      console.log('Audio playback prevented');
+      console.log('Audio error');
     }
   }
 
   // Popup triggers
   function showPopup() {
-    playWarningSound();
+    playMemeSound();
     document.getElementById('warningPopup').classList.add('active');
   }
 
@@ -403,65 +402,58 @@
 
   const dateInput = document.getElementById('dateInput');
 
-  dateInput.addEventListener('change', function() {
-    const val = this.value.trim();
-    if (!val) return;
+  // TRIGGER ON ENTER KEY PRESS ONLY
+  dateInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = this.value.trim();
 
-    const expireDate = parseAnyDate(val);
+      if (!val) {
+        resetFields();
+        return;
+      }
 
-    if (expireDate === 'INVALID') {
-      showPopup();
-      resetFields();
+      const expireDate = parseAnyDate(val);
+
+      if (expireDate === 'INVALID') {
+        showPopup();
+        resetFields();
+        return;
+      }
+
+      // Execute calculation on Enter
+      const start = new Date(expireDate.getFullYear(), expireDate.getMonth(), expireDate.getDate());
+      const end = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      
+      const diffTime = end - start;
+      const totalDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if (totalDays < 0) {
+        document.getElementById('totalDays').innerText = 'Expired';
+        document.getElementById('exactTopup').innerText = '0M 0D';
+        document.getElementById('fullTopup').innerText = '0 Months';
+        return;
+      }
+
+      let months = (targetDate.getFullYear() - expireDate.getFullYear()) * 12 + (targetDate.getMonth() - expireDate.getMonth());
+      let days = targetDate.getDate() - expireDate.getDate();
+
+      if (days < 0) {
+        months--;
+        const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
+        days += prevMonth.getDate();
+      }
+
+      const roundedMonths = days > 0 ? months + 1 : months;
+
+      document.getElementById('totalDays').innerText = `${totalDays} Days`;
+      document.getElementById('exactTopup').innerText = `${months}M ${days}D`;
+      document.getElementById('fullTopup').innerText = `${roundedMonths} Months`;
+
+      document.getElementById('rSelected').innerText = formatDate(expireDate);
+      document.getElementById('rExact').innerText = `${months} Months & ${days} Days (Total: ${totalDays} Days)`;
+      document.getElementById('rRounded').innerText = `${roundedMonths} Full Months (Extra ${days} days added as +1 month)`;
     }
-  });
-
-  dateInput.addEventListener('input', function() {
-    const val = this.value.trim();
-
-    if (!val) {
-      resetFields();
-      return;
-    }
-
-    const expireDate = parseAnyDate(val);
-
-    if (expireDate === 'INVALID') {
-      resetFields();
-      return;
-    }
-
-    // Calculation logic
-    const start = new Date(expireDate.getFullYear(), expireDate.getMonth(), expireDate.getDate());
-    const end = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-    
-    const diffTime = end - start;
-    const totalDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-    if (totalDays < 0) {
-      document.getElementById('totalDays').innerText = 'Expired';
-      document.getElementById('exactTopup').innerText = '0M 0D';
-      document.getElementById('fullTopup').innerText = '0 Months';
-      return;
-    }
-
-    let months = (targetDate.getFullYear() - expireDate.getFullYear()) * 12 + (targetDate.getMonth() - expireDate.getMonth());
-    let days = targetDate.getDate() - expireDate.getDate();
-
-    if (days < 0) {
-      months--;
-      const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
-      days += prevMonth.getDate();
-    }
-
-    const roundedMonths = days > 0 ? months + 1 : months;
-
-    document.getElementById('totalDays').innerText = `${totalDays} Days`;
-    document.getElementById('exactTopup').innerText = `${months}M ${days}D`;
-    document.getElementById('fullTopup').innerText = `${roundedMonths} Months`;
-
-    document.getElementById('rSelected').innerText = formatDate(expireDate);
-    document.getElementById('rExact').innerText = `${months} Months & ${days} Days (Total: ${totalDays} Days)`;
-    document.getElementById('rRounded').innerText = `${roundedMonths} Full Months (Extra ${days} days added as +1 month)`;
   });
 
   function resetFields() {
